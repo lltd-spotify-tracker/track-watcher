@@ -12,14 +12,7 @@ def convert_to_unix(utc_string):
     return int(utc_datetime.timestamp() * 1000)
 
 
-def convert_to_aus_tz(unix_timestamp):
+def convert_to_timestamp(unix_timestamp):
     timestamp_datetime = datetime.fromtimestamp(unix_timestamp / 1000)
 
-    # Make the datetime object timezone aware
-    timestamp_datetime = timestamp_datetime.replace(tzinfo=pytz.UTC)
-
-    # Convert the datetime object to your current timezone
-    timestamp_datetime = timestamp_datetime.astimezone(pytz.timezone('Australia/Sydney')) # replace 'Asia/Kolkata' with your timezone
-
-    # Convert the datetime object to a string
     return timestamp_datetime.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
