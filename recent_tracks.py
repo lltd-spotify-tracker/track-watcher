@@ -4,6 +4,7 @@ from spotipy import SpotifyOAuth, Spotify
 import os
 import time
 import logging
+import shutil
 from tools import convert_to_unix, convert_to_timestamp
 
 class RecentTrack:
@@ -49,6 +50,7 @@ class RecentTrack:
         batch_data = []
         tracks = set()
 
+        latest_unix_time = -1
         for item in res.get('items'):
             unix_time = convert_to_unix(item.get('played_at'))
             track_id = item['track']['id']
@@ -61,6 +63,7 @@ class RecentTrack:
                     'track_id':item['track']['id'],
                 }
             )
+            latest_unix_time = max(latest_unix_time, unix_time)
             if self.test: break
 
         for track_id in tracks:
@@ -75,8 +78,10 @@ class RecentTrack:
             ]).execute()
         
         self.logger.info('Extracted data at unix time successfully: ' + str(self.after_time))
-        self.logger.info('Next: ' + res.get("next", "None"))
-        self.after_time = int(res.get('cursors').get('after')) if res.get('cursors') else None
+
+        next_url: str = res.get("next") or "None"
+        self.logger.info('Next: ' + next_url)
+        self.after_time = (latest_unix_time + 1) if res.get('items') else None
 
     def run(self):
         print(self.after_time, self.try_run_time, self.MAX_RUN_TIME)
@@ -88,8 +93,12 @@ class RecentTrack:
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(logging.DEBUG)
 
+
         # Create a file handler
         log_directory = "logs/recent_tracks"
+        # Remove the old log files
+        shutil.rmtree(log_directory, ignore_errors=True)
+       
         os.makedirs(log_directory, exist_ok=True)
         handler = logging.FileHandler(f"{log_directory}/{int(time.time())}.log")
 
