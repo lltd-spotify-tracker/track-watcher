@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 from supabase import create_client
 from recent_tracks import RecentTrack
+from entities import Track
 import os
 import argparse
 
@@ -30,3 +31,7 @@ if __name__ == "__main__":
     if args.options == 'recent_track' or args.options == 'r':
         recent_track = RecentTrack(supabase)
         recent_track.run()
+    
+    if args.options == 'track' or args.options == 't':
+        track = Track(supabase)
+        track.etl()

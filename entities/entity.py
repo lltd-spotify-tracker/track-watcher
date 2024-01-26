@@ -11,19 +11,8 @@ class Entity:
         self.SPOTIFY_CLIENT_SECRET: str = os.getenv("SPOTIFY_CLIENT_SECRET") 
         self.SPOTIFY_REDIRECT_URI: str = os.getenv("SPOTIFY_REDIRECT_URI")
 
+        self.DATA_LIMIT = 10000
         self.sp = self.refresh()
-    
-    def upsert(self, data: list) -> None:
-        try:
-            self.supabase.table(self.table_name).upsert(data)
-        except Exception as e:
-            return
-        
-    def upsert(self, data: list, table_name: str) -> None:
-        try:
-            self.supabase.table(table_name).upsert(data)
-        except Exception as e:
-            return
     
     # Refresh the authorization workflow
     def refresh(self) -> Spotify:
@@ -32,3 +21,4 @@ class Entity:
             redirect_uri=self.SPOTIFY_REDIRECT_URI,
             scope="user-read-recently-played"
         )
+        return Spotify(auth_manager=self.client_credentials_manager)
