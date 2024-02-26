@@ -6,6 +6,25 @@ class Track(Entity):
         super().__init__(supabase, table_name="tracks")
         self.max_iter = 1000
     
+    def extract_genres(self, album_id: str, genres: list):
+        # Extract the genres from the album
+        album_detail = self.sp.album(album_id)
+        genres = set(album_detail.get("genres"))
+        label = album_detail.get("label")
+        if 'lofi' in label.lower(): genres.add("lofi")
+        for genre in genres:
+            genre_data = {
+                'name': genre.lower()
+            }
+            self.supabase.table("genres")\
+                .upsert(genre_data).execute()
+            albums_genres_data = {
+                "album_id": album_id,
+                "genre": genre.lower()
+            }
+            self.supabase.table("albums_genres")\
+                .upsert(albums_genres_data).execute()
+    
     def etl(self):
         etl_iter = 0
         while etl_iter < self.max_iter:
@@ -31,8 +50,6 @@ class Track(Entity):
                     }
                     self.supabase.table("albums")\
                         .upsert(album_data).execute()
-                
-                album_detail = self.sp.album(album["id"])
 
                 track_data = {
                     "id": track_obj["id"],
@@ -63,18 +80,3 @@ class Track(Entity):
                         .upsert(tracks_artists_data).execute()
 
                 
-                genres = set(album_detail.get("genres"))
-                label = album_detail.get("label")
-                if 'lofi' in label.lower(): genres.add("lofi")
-                for genre in genres:
-                    genre_data = {
-                        'name': genre.lower()
-                    }
-                    self.supabase.table("genres")\
-                        .upsert(genre_data).execute()
-                    albums_genres_data = {
-                        "album_id": album["id"],
-                        "genre": genre.lower()
-                    }
-                    self.supabase.table("albums_genres")\
-                        .upsert(albums_genres_data).execute()
